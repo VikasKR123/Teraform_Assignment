@@ -1,7 +1,7 @@
 resource "aws_security_group" "public" {
   name        = "public-sg"
   description = "Public security group"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 80
@@ -28,7 +28,7 @@ resource "aws_security_group" "public" {
 resource "aws_security_group" "private" {
   name        = "private-sg"
   description = "Private security group"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port       = 22
@@ -46,17 +46,17 @@ resource "aws_security_group" "private" {
 }
 
 resource "aws_instance" "public" {
-  ami           = "ami-0735c191cf914754d"  # Ubuntu 20.04 LTS
-  instance_type = "t2.micro"
-  subnet_id     = var.public_subnet_id
-  key_name      = var.key_name
+  ami           = "ami-0c55b159cbfafe1f0"  # Amazon Linux 2 AMI ID
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.public.id
+  key_name      = aws_key_pair.deployer.key_name
 
   vpc_security_group_ids = [aws_security_group.public.id]
 
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update
-              apt-get install -y nginx
+              yum update -y
+              yum install nginx -y
               systemctl start nginx
               systemctl enable nginx
               EOF
@@ -67,10 +67,10 @@ resource "aws_instance" "public" {
 }
 
 resource "aws_instance" "private" {
-  ami           = "ami-0735c191cf914754d"  # Ubuntu 20.04 LTS
-  instance_type = "t2.micro"
-  subnet_id     = var.private_subnet_id
-  key_name      = var.key_name
+  ami           = "ami-0c55b159cbfafe1f0"  # Amazon Linux 2 AMI ID
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.private.id
+  key_name      = aws_key_pair.deployer.key_name
 
   vpc_security_group_ids = [aws_security_group.private.id]
 
